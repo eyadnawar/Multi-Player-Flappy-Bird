@@ -1,0 +1,35 @@
+server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    server.settimeout(0.2)
+    server.bind(("", 44444))  # 44444 should be randomly generated
+
+    client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
+    client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    client.bind(("", 37020))  # should be fixed
+
+    message = b"Iam here"
+    while True:
+        server.sendto(message, ('<broadcast>', 37020))
+        print("message sent!")
+        time.sleep(1)
+        data, addr = client.recvfrom(1024)
+        print("received message:", data)
+        if (len(data) != 0 ):
+            break
+
+    print("the address is ", addr)
+    if (data == message):
+        server.sendto(addr, ('<broadcast>', 37020))
+        time.sleep(1)
+        connSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        address = addr
+        server.close()
+        client.close()
+        connSocket.connect(address)
+    else:
+        mySocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.close()
+        mySocket.bind(data)
+        client.close()
+        mySocket.listen()
+        connSocket, connAddr = mySocket.accept()
